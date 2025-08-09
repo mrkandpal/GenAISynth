@@ -8,19 +8,32 @@ from pydantic import BaseModel
 app = FastAPI()
 
 # openAI client
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Define a request model for the prompt
 #PromptRequest is a Pydantic model class that defines LLM prompts to obtain synth parameters
 class PromptRequest(BaseModel):
     prompt : str
 
-#Define a request model for comparison between two genres
-class CompareRequest(BaseModel):
-    genre1 : str
-    genre2 : str
+# Define a response model for the prompt
+#This model is at an experimental stage for now.... The exact structure will evenetually depend on the JUCE synthesizer
+class SynthParameters(BaseModel):
+    oscillator : str
+    cutoff : float
+    resonance : float
 
-#Define a response model for comparison between two genres
+#Prompt Template for instructing LLM to return JSON
+PROMPT_TEMPLATE = """
+You are synthesizer parameter generator. Given a user prompt, respond only with JSON in the following format:
+{{
+    "osciallator" : "sine" | "saw" | "square" | "triangle",
+    "cutoff" : 20 to 20000,
+    "resonance" : 0.0 to 1.0
+}}
+
+User prompt: "{user_prompt}"
+
+"""
 
 #GET route for testing API
 @app.get("/")
@@ -54,11 +67,3 @@ def synthesize(request: PromptRequest):
         "received_prompt": request.prompt
     }
 
-@app.post("/compare")
-def compare(request : CompareRequest):
-    #Test prototype - return fake comparison between two genres
-    return{
-        "genre1": request.genre1,
-        "genre2": request.genre2,
-        "comparison": "The two genres are similar in that they both use synthesizers and have a similar sound."
-    }
