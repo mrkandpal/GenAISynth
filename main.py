@@ -26,7 +26,7 @@ class SynthParameters(BaseModel):
 PROMPT_TEMPLATE = """
 You are synthesizer parameter generator. Given a user prompt, respond only with JSON in the following format:
 {{
-    "osciallator" : "sine" | "saw" | "square" | "triangle",
+    "oscillator" : "sine" | "saw" | "square" | "triangle",
     "cutoff" : 20 to 20000,
     "resonance" : 0.0 to 1.0
 }}
@@ -42,7 +42,7 @@ def read_root():
 
 #POST route for generation of synthesizer parameters
 """
-The endpoint /synthesize will return a JSON object with the synthesizer parameters.
+The endpoint /synthesize will return a JSON object with the synthesizer parameters, based on the SynthParameters class.
 Prompts may be generic or specfic 
 For example, a generic prmopt could be, 
 I want a synth that sounds like a 1980s synth
