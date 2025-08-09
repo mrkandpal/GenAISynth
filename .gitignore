@@ -1,2 +1,11 @@
 __pycache__/
-.DS_Store/
+.DS_Store
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.env
+*.log
