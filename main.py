@@ -57,13 +57,50 @@ A prmopt may also include names of specific artists, like,
 I want a synth that sounds like the music of Daft Punk
 
 """
-@app.post("/synthesize")
-def synthesize(request: PromptRequest):
-    # Test prototype - return fake synthesizer parameters
-    return{
-        "oscillator_type": "sawtooth",
-        "cutoff_frequency": 1200,
-        "resonance": 0.7,
-        "received_prompt": request.prompt
-    }
+@app.post("/synthesize", response_model=SynthParameters)
+async def synthesize(request: PromptRequest):
+    # Format user prompt as per tempalte for the LLM
+    prompt = PROMPT_TEMPLATE.format(user_prompt=request.prompt)
+
+    # Generate response using OpenAI gpt-4o-mini
+    try:
+        #Call the LLM
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": prompt}],
+            temperature=0.7, # Emphasize deterministic and focussed behaviour over extra creativity
+            max_tokens=150
+        )
+        
+        # Extract the response content
+        raw_text = response.choices[0].message.content.strip()
+        
+        # Parse the JSON response
+        # Handle fences - lean up the response if it contains markdown code blocks
+        if "```json" in raw_text:
+            # Split response string text between the '''json...''' fence
+            raw_text = raw_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in raw_text:
+            # Split response string text between the '''...''' fence
+            raw_text = raw_text.split("```")[1].split("```")[0].strip()
+            
+        try:
+            # Parse JSON from cleaned up text    
+            params = json.loads(raw_text)
+    
+            # Validate and return the parameters
+            return SynthParameters(
+                # Extract available values, otherwise assign defaults
+                oscillator=params.get("oscillator", "sine"),
+                cutoff=params.get("cutoff", 1000.0),
+                resonance=params.get("resonance", 0.5)
+            )
+            
+        except json.JSONDecodeError as e:
+            raise HTTPException(status_code=422, detail=f"Failed to parse LLM response as JSON: {str(e)}")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate synthesizer parameters: {str(e)}")
+
 
