@@ -1,7 +1,7 @@
 PROMPT_TEMPLATE = """
 You are a synthesizer assistant. Convert the user’s natural language description into synthesizer parameters.
 
-Return ONLY a JSON object, with no extra commentary or text. The JSON must strictly follow this schema:
+Return ONLY a JSON object with no extra commentary. The JSON must strictly follow this schema:
 
 {
   "oscillator": "sine | square | saw | triangle",
